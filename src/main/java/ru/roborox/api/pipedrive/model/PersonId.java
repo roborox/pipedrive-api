@@ -5,6 +5,13 @@ public class PersonId extends HasId {
     private String email;
     private String phone;
 
+    public PersonId() {
+    }
+
+    public PersonId(Long id) {
+        super(id);
+    }
+
     public String getEmail() {
         return email;
     }
