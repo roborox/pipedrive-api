@@ -1,18 +1,9 @@
 package ru.roborox.api.pipedrive.model;
 
-public class PersonId {
-    private long id;
+public class PersonId extends HasId {
     private String name;
     private String email;
     private String phone;
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
 
     public String getEmail() {
         return email;
@@ -41,7 +32,7 @@ public class PersonId {
     @Override
     public String toString() {
         return "Person{" +
-                "id=" + id +
+                "id=" + getId() +
                 ", name='" + name + '\'' +
                 '}';
     }

@@ -15,7 +15,9 @@ import java.util.function.Function;
 
 public class PipedriveApi<TPerson extends Person, TDeal extends Deal> {
     public static final String FIND = "/find";
+
     public static final String PERSONS = "/persons";
+    public static final String DEALS = "/deals";
 
     private final String apiToken;
     private final String apiUrl;
@@ -40,16 +42,24 @@ public class PipedriveApi<TPerson extends Person, TDeal extends Deal> {
         return getForPage(PERSONS + FIND, PersonId.class, Pair.of("term", term), Pair.of("start", start), Pair.of("limit", limit), Pair.of("search_by_email", searchByEmail));
     }
 
-    public Response<Person, Void> addPerson(Person person) throws IOException, URISyntaxException {
-        return post(PERSONS, person, Person.class, Void.class);
+    public Response<HasId, Void> addPerson(TPerson person) throws IOException, URISyntaxException {
+        return post(PERSONS, person, HasId.class, Void.class);
     }
 
-    public Response<Person, Void> updatePerson(Person person) throws IOException, URISyntaxException {
-        return put(PERSONS + "/" + person.getId(), person, Person.class, Void.class);
+    public Response<HasId, Void> updatePerson(TPerson person) throws IOException, URISyntaxException {
+        return put(PERSONS + "/" + person.getId(), person, HasId.class, Void.class);
     }
 
     public Response<HasId, Void> deletePerson(long id) throws IOException, URISyntaxException {
         return request(Request::Delete, PERSONS + "/" + id, null, HasId.class, Void.class);
+    }
+
+    public Response<HasId, Void> addDeal(TDeal deal) throws IOException, URISyntaxException {
+        return post(DEALS, deal, HasId.class, Void.class);
+    }
+
+    public Response<HasId, Void> deleteDeal(long id) throws IOException, URISyntaxException {
+        return request(Request::Delete, DEALS + "/" + id, null, HasId.class, Void.class);
     }
 
     @SafeVarargs
