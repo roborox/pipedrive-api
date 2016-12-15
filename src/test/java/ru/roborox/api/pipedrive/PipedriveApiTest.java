@@ -2,13 +2,8 @@ package ru.roborox.api.pipedrive;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import ru.roborox.api.pipedrive.model.Deal;
-import ru.roborox.api.pipedrive.model.Page;
-import ru.roborox.api.pipedrive.model.Person;
-import ru.roborox.api.pipedrive.model.PersonId;
+import ru.roborox.api.pipedrive.model.*;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Properties;
 
 import static org.testng.Assert.assertEquals;
@@ -30,10 +25,26 @@ public class PipedriveApiTest {
     }
 
     @Test
-    public void findPersons() throws IOException, URISyntaxException {
+    public void findPersons() throws Exception {
         final Page<PersonId> result = api.findPersons(testEmail, 0, 100, true);
         assertEquals(result.getData().size(), 1);
         assertNotNull(result.getData().get(0).getName());
         assertEquals(result.getData().get(0).getEmail(), testEmail);
+    }
+
+    @Test
+    public void crudPerson() throws Exception {
+        final Person person = new Person();
+        person.setName("Test Person");
+        final Response<Person, Void> createResponse = api.addPerson(person);
+        assertNotNull(createResponse.getData().getId());
+
+        person.setName("Test Person2");
+        person.setId(createResponse.getData().getId());
+        final Response<Person, Void> updateResponse = api.updatePerson(person);
+        assertEquals(updateResponse.getData().getName(), "Test Person2");
+
+        final Response<HasId, Void> deleteResponse = api.deletePerson(createResponse.getData().getId());
+        assertEquals(deleteResponse.getData().getId(), createResponse.getData().getId());
     }
 }

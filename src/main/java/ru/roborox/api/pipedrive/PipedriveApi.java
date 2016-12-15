@@ -1,22 +1,21 @@
 package ru.roborox.api.pipedrive;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.HttpClients;
-import ru.roborox.api.pipedrive.model.Deal;
-import ru.roborox.api.pipedrive.model.Page;
-import ru.roborox.api.pipedrive.model.Person;
-import ru.roborox.api.pipedrive.model.PersonId;
+import ru.roborox.api.pipedrive.model.*;
 import ru.roborox.api.pipedrive.serialization.SerializationUtils;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.function.Function;
 
 public class PipedriveApi<TPerson extends Person, TDeal extends Deal> {
-    public static final String PERSONS_FIND = "/persons/find";
+    public static final String FIND = "/find";
+    public static final String PERSONS = "/persons";
 
     private final String apiToken;
     private final String apiUrl;
@@ -24,7 +23,6 @@ public class PipedriveApi<TPerson extends Person, TDeal extends Deal> {
     private final Class<TDeal> dealClass;
 
     private final Executor executor;
-    private final ObjectMapper objectMapper;
 
     public PipedriveApi(String apiToken, String apiUrl, Class<TPerson> personClass, Class<TDeal> dealClass) {
         this.apiToken = apiToken;
@@ -32,7 +30,6 @@ public class PipedriveApi<TPerson extends Person, TDeal extends Deal> {
         this.personClass = personClass;
         this.dealClass = dealClass;
         this.executor = Executor.newInstance(HttpClients.createDefault());
-        this.objectMapper = new ObjectMapper();
     }
 
     public static PipedriveApi<Person, Deal> createDefault(String apiToken) {
@@ -40,7 +37,19 @@ public class PipedriveApi<TPerson extends Person, TDeal extends Deal> {
     }
 
     public Page<PersonId> findPersons(String term, int start, int limit, boolean searchByEmail) throws IOException, URISyntaxException {
-        return getForPage(PERSONS_FIND, PersonId.class, Pair.of("term", term), Pair.of("start", start), Pair.of("limit", limit), Pair.of("search_by_email", searchByEmail));
+        return getForPage(PERSONS + FIND, PersonId.class, Pair.of("term", term), Pair.of("start", start), Pair.of("limit", limit), Pair.of("search_by_email", searchByEmail));
+    }
+
+    public Response<Person, Void> addPerson(Person person) throws IOException, URISyntaxException {
+        return post(PERSONS, person, Person.class, Void.class);
+    }
+
+    public Response<Person, Void> updatePerson(Person person) throws IOException, URISyntaxException {
+        return put(PERSONS + "/" + person.getId(), person, Person.class, Void.class);
+    }
+
+    public Response<HasId, Void> deletePerson(long id) throws IOException, URISyntaxException {
+        return request(Request::Delete, PERSONS + "/" + id, null, HasId.class, Void.class);
     }
 
     @SafeVarargs
@@ -63,7 +72,19 @@ public class PipedriveApi<TPerson extends Person, TDeal extends Deal> {
         return b.toString();
     }
 
-    private <T> T executeForObject(Request request, Class<T> tClass) throws IOException {
-        return objectMapper.readValue(executor.execute(request).returnContent().asString(), tClass);
+    private <D, A> Response<D, A> post(String path, Object request, Class<D> dClass, Class<A> aClass) throws IOException, URISyntaxException {
+        return request(Request::Post, path, request, dClass, aClass);
+    }
+
+    private <D, A> Response<D, A> put(String path, Object request, Class<D> dClass, Class<A> aClass) throws IOException, URISyntaxException {
+        return request(Request::Put, path, request, dClass, aClass);
+    }
+
+    private <D, A> Response<D, A> request(Function<String, Request> createRequestFunction, String path, Object request, Class<D> dClass, Class<A> aClass) throws IOException, URISyntaxException {
+        final Request req = createRequestFunction.apply(getUrl(path));
+        if (request != null) {
+            req.bodyString(SerializationUtils.toString(request), ContentType.APPLICATION_JSON);
+        }
+        return SerializationUtils.parseResponse(executor.execute(req).returnContent().asString(), dClass, aClass);
     }
 }

@@ -1,5 +1,7 @@
 package ru.roborox.api.pipedrive.serialization;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.roborox.api.pipedrive.model.Page;
@@ -12,6 +14,7 @@ public class SerializationUtils {
 
     static {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     @SuppressWarnings("unchecked")
@@ -24,5 +27,9 @@ public class SerializationUtils {
     public static <T> Page<T> parsePageResponse(String json, Class<T> tClass) throws IOException {
         PageDeserializer.setNeededClass(tClass);
         return objectMapper.readValue(json, Page.class);
+    }
+
+    public static String toString(Object object) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(object);
     }
 }
