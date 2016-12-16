@@ -1,10 +1,11 @@
 package ru.roborox.api.pipedrive.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
 public class Person extends HasId {
     private String name;
-    private String link;
+    private List<Contact> email;
+    private List<Contact> phone;
 
     public String getName() {
         return name;
@@ -14,13 +15,20 @@ public class Person extends HasId {
         this.name = name;
     }
 
-    @JsonProperty("e8173f791516755ecbe005f9f372596c174315a3")
-    public String getLink() {
-        return link;
+    public List<Contact> getEmail() {
+        return email;
     }
 
-    public void setLink(String link) {
-        this.link = link;
+    public void setEmail(List<Contact> email) {
+        this.email = email;
+    }
+
+    public List<Contact> getPhone() {
+        return phone;
+    }
+
+    public void setPhone(List<Contact> phone) {
+        this.phone = phone;
     }
 
     @Override
