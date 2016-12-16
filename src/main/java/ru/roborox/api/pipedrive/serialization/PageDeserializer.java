@@ -24,8 +24,11 @@ public class PageDeserializer extends AbstractDeserializer<Page> {
         final TreeNode json = p.getCodec().readTree(p);
         final List<Object> data = new ArrayList<>();
         final Class tClass = PageDeserializer.tClass.get();
-        for (JsonNode item : ((ArrayNode) json.get("data"))) {
-            data.add(deserialize(item, tClass));
+        final TreeNode dataNode = json.get("data");
+        if (dataNode instanceof ArrayNode) {
+            for (JsonNode item : ((ArrayNode) dataNode)) {
+                data.add(deserialize(item, tClass));
+            }
         }
         final TreeNode pagination = json.get("additional_data").get("pagination");
         return new Page(getInt(pagination.get("start")), getInt(pagination.get("limit")), getBoolean(pagination.get("more_items_in_collection")), data);
